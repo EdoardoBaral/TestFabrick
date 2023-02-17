@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = {BankService.class, BankServiceImpl.class})
-public class BankServiceIntegrationTest
+public class BankServiceImplIntegrationTest
 {
 	@Autowired
 	private BankService service;
@@ -30,10 +30,10 @@ public class BankServiceIntegrationTest
 		assertTrue(outputDto.getError().isEmpty());
 		assertNull(outputDto.getErrors());
 		assertNotNull(outputDto.getPayload());
-		assertEquals(getExampleBalanceOutputDto(), outputDto.getPayload());
+		assertEquals(getExampleBalanceDtoPayload(), outputDto.getPayload());
 	}
 	
-	private BalanceDtoPayload getExampleBalanceOutputDto()
+	private BalanceDtoPayload getExampleBalanceDtoPayload()
 	{
 		BalanceDtoPayload example = new BalanceDtoPayload();
 		example.setDate("2023-02-17");
