@@ -1,6 +1,7 @@
 package com.fabrick.banking.interfaces;
 
 import com.fabrick.banking.model.ErrorModel;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.ToString;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Data
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class GenericResponse implements Serializable
 {
 	private static final long serialVersionUID = -8447842011638282804L;
