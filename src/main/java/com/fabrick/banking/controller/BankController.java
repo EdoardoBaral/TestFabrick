@@ -12,7 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api")
 public class BankController
 {
 	@Autowired
@@ -29,17 +29,17 @@ public class BankController
 		return response;
 	}
 	
-	@PostMapping(value = "/creditTransfer")
-	public CreditTransferResponse payCreditTransfer(@PathVariable(value = "acountId") Long accountId, @RequestBody CreditTransferRequest request)
+	@PostMapping(value = "/creditTransfer", produces = MediaType.APPLICATION_JSON_VALUE)
+	public CreditTransferResponse payCreditTransfer(@RequestBody CreditTransferRequest request)
 	{
-		CreditTransferInputDto inputDto = factory.toCreditTransferInputDto(request, accountId);
+		CreditTransferInputDto inputDto = factory.toCreditTransferInputDto(request);
 		CreditTransferOutputDto outputDto = service.payCreditTransfer(inputDto);
 		CreditTransferResponse response = factory.toCreditTransferResponse(outputDto);
 		
 		return response;
 	}
 	
-	@GetMapping(value = "/transactionsList")
+	@GetMapping(value = "/transactionsList/{accountId}/{fromAccountingDate}/{toAccountingDate}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public TransactionsListResponse getTransactionsList(@PathVariable(value = "accountId") Long accountId,
 														@PathVariable(value = "fromAccountingDate") String fromAccountingDate,
 														@PathVariable(value = "toAccountingDate") String toAccountingDate)

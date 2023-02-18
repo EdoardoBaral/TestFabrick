@@ -39,7 +39,7 @@ public class ConverterFactory
 		return payload;
 	}
 	
-	public CreditTransferInputDto toCreditTransferInputDto(CreditTransferRequest request, Long accountId)
+	public CreditTransferInputDto toCreditTransferInputDto(CreditTransferRequest request)
 	{
 		CreditTransferInputDto inputDto = new CreditTransferInputDto();
 		
@@ -51,7 +51,7 @@ public class ConverterFactory
 		inputDto.setCurrency(request.getCurrency());
 		inputDto.setAmount(request.getAmount());
 		inputDto.setExecutionDate(request.getExecutionDate());
-		inputDto.setFeeAccountId(String.valueOf(accountId));
+		inputDto.setFeeAccountId(String.valueOf(request.getAccountId()));
 		
 		return inputDto;
 	}

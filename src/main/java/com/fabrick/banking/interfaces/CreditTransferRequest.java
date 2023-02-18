@@ -12,6 +12,7 @@ public class CreditTransferRequest implements Serializable
 {
 	private static final long serialVersionUID = 8351907055624144647L;
 	
+	private Long accountId;
 	private String receiverName;
 	private String description;
 	private String currency;
