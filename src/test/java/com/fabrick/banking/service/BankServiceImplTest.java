@@ -2,29 +2,43 @@ package com.fabrick.banking.service;
 
 import com.fabrick.banking.dto.*;
 import com.fabrick.banking.interfaces.GenericResponse;
-import org.junit.jupiter.api.Disabled;
+import com.fabrick.banking.model.PaymentTransaction;
+import com.fabrick.banking.model.TransactionType;
+import com.fabrick.banking.model.TransactionsListPayload;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = {BankService.class, BankServiceImpl.class, RestTemplate.class})
-public class BankServiceImplIntegrationTest
+public class BankServiceImplTest
 {
 	@Autowired
 	private BankService service;
 	
+	@MockBean
+	private RestTemplate restTemplate;
+	
 	@Test
-	@Disabled //Test con chiamata reale all'API di recupero saldo di un rapporto di Banca Sella, disabilitato per prevenire possibili errori durante la build di Maven
-	public void getBalanceTestOK()
+	public void getBalanceTestOK() throws Exception
 	{
 		Long accountId = 14537780L;
+		
+		ResponseEntity<BalanceOutputDto> balanceResponseMocked = ResponseEntity.ok(getBalanceOutputDtoMocked());
+		when(restTemplate.exchange(anyString(), any(), any(), eq(BalanceOutputDto.class))).thenReturn(balanceResponseMocked);
+		
 		BalanceOutputDto outputDto = service.getBalance(accountId);
 		
 		assertNotNull(outputDto);
@@ -34,6 +48,17 @@ public class BankServiceImplIntegrationTest
 		assertNull(outputDto.getErrors());
 		assertNotNull(outputDto.getPayload());
 		assertEquals(getExampleBalanceDtoPayload(), outputDto.getPayload());
+	}
+	
+	private BalanceOutputDto getBalanceOutputDtoMocked()
+	{
+		BalanceOutputDto outputDto = new BalanceOutputDto();
+		outputDto.setStatus(GenericResponse.STATUS_OK);
+		outputDto.setStatusCode(HttpStatus.OK);
+		outputDto.setError(new ArrayList<>());
+		outputDto.setPayload(getExampleBalanceDtoPayload());
+		
+		return outputDto;
 	}
 	
 	private BalanceDtoPayload getExampleBalanceDtoPayload()
@@ -76,10 +101,11 @@ public class BankServiceImplIntegrationTest
 	}
 	
 	@Test
-	@Disabled //Test con chiamata reale all'API di recupero saldo di un rapporto di Banca Sella, disabilitato per prevenire possibili errori durante la build di Maven
 	public void payCreditTransferTestKO()
 	{
 		CreditTransferInputDto inputDto = initCreditTransferInputDtoOK();
+		when(restTemplate.exchange(anyString(), any(), any(), eq(CreditTransferOutputDto.class))).thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+		
 		assertThrows(HttpClientErrorException.class, () -> service.payCreditTransfer(inputDto));
 	}
 	
@@ -247,10 +273,13 @@ public class BankServiceImplIntegrationTest
 	}
 	
 	@Test
-	@Disabled //Test con chiamata reale all'API di recupero saldo di un rapporto di Banca Sella, disabilitato per prevenire possibili errori durante la build di Maven
 	public void getTransactionListTestOK()
 	{
 		TransactionsListInputDto inputDto = initTransactionsListInputDtoOK();
+		
+		ResponseEntity<TransactionsListOutputDto> transactionsListResponseMocked = ResponseEntity.ok(getTransactionsListOutputDtoMocked());
+		when(restTemplate.exchange(anyString(), any(), any(), eq(TransactionsListOutputDto.class))).thenReturn(transactionsListResponseMocked);
+		
 		TransactionsListOutputDto outputDto = service.getTransactionsList(inputDto);
 		
 		assertNotNull(outputDto);
@@ -258,7 +287,44 @@ public class BankServiceImplIntegrationTest
 		assertEquals(HttpStatus.OK, outputDto.getStatusCode());
 		assertTrue(outputDto.getError().isEmpty());
 		assertNull(outputDto.getErrors());
-		assertEquals(17, outputDto.getPayload().getList().size());
+		assertEquals(1, outputDto.getPayload().getList().size());
+	}
+	
+	private TransactionsListOutputDto getTransactionsListOutputDtoMocked()
+	{
+		TransactionsListOutputDto outputDto = new TransactionsListOutputDto();
+		outputDto.setStatus("OK");
+		outputDto.setStatusCode(HttpStatus.OK);
+		outputDto.setError(new ArrayList<>());
+		outputDto.setPayload(getTransactionsListPayloadMock());
+		
+		return outputDto;
+	}
+	
+	private TransactionsListPayload getTransactionsListPayloadMock()
+	{
+		TransactionsListPayload payload = new TransactionsListPayload();
+		
+		List<PaymentTransaction> list = new ArrayList<>();
+		PaymentTransaction transaction = new PaymentTransaction();
+		transaction.setTransactionId("123");
+		transaction.setOperationId("ABC-123");
+		transaction.setAccountingDate("2023-02-20");
+		transaction.setValueDate("2023-02-20");
+		
+		TransactionType type = new TransactionType();
+		type.setEnumeration("Enumeration");
+		type.setValue("Value");
+		transaction.setType(type);
+		
+		transaction.setAmount(new BigDecimal(10));
+		transaction.setCurrency("EUR");
+		transaction.setDescription("Description");
+		
+		list.add(transaction);
+		payload.setList(list);
+		
+		return payload;
 	}
 	
 	private TransactionsListInputDto initTransactionsListInputDtoOK()
