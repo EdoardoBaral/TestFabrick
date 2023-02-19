@@ -3,6 +3,7 @@ package com.fabrick.banking.service;
 import com.fabrick.banking.dto.*;
 import com.fabrick.banking.interfaces.GenericResponse;
 import com.fabrick.banking.model.ErrorModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +15,9 @@ import java.util.List;
 @Service
 public class BankServiceImpl implements BankService
 {
+	@Autowired
+	private RestTemplate restTemplate;
+	
 	public BalanceOutputDto getBalance(Long accountId)
 	{
 		try
@@ -29,7 +33,6 @@ public class BankServiceImpl implements BankService
 			return getBalanceOutputDtoGenericError(HttpStatus.BAD_REQUEST, "BAL002", e.getMessage());
 		}
 		
-		RestTemplate restTemplate = new RestTemplate();
 		String apiUrl = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/"+ accountId +"/balance";
 		HttpEntity apiRequest = new HttpEntity(getHeaders());
 		ResponseEntity<BalanceOutputDto> apiResponse = restTemplate.exchange(apiUrl, HttpMethod.GET, apiRequest, BalanceOutputDto.class);
@@ -88,7 +91,6 @@ public class BankServiceImpl implements BankService
 		
 		fillInputDto(inputDto);
 		
-		RestTemplate restTemplate = new RestTemplate();
 		String apiUrl = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/"+ inputDto.getFeeAccountId() +"/payments/money-transfers/validate";
 		HttpEntity<CreditTransferInputDto> apiRequest = new HttpEntity<>(inputDto, getHeaders());
 		ResponseEntity<CreditTransferOutputDto> apiResponse = restTemplate.exchange(apiUrl, HttpMethod.POST, apiRequest, CreditTransferOutputDto.class);
@@ -173,7 +175,6 @@ public class BankServiceImpl implements BankService
 			return getTransactionsListOutputDtoGenericError(HttpStatus.BAD_REQUEST, "TRL001", e.getMessage());
 		}
 		
-		RestTemplate restTemplate = new RestTemplate();
 		String apiUrl = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/"+ inputDto.getAccountId() +"/transactions?fromAccountingDate="+ inputDto.getFromAccountingDate() +
 							"&toAccountingDate="+ inputDto.getToAccountingDate();
 		HttpEntity apiRequest = new HttpEntity(getHeaders());
