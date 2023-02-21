@@ -3,6 +3,7 @@ package com.fabrick.banking.service;
 import com.fabrick.banking.dto.*;
 import com.fabrick.banking.interfaces.GenericResponse;
 import com.fabrick.banking.model.ErrorModel;
+import com.fabrick.banking.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ public class BankServiceImpl implements BankService
 			return getBalanceOutputDtoGenericError(HttpStatus.BAD_REQUEST, "BAL002", e.getMessage());
 		}
 		
-		String apiUrl = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/"+ accountId +"/balance";
+		String apiUrl = String.format(Constants.GET_BALANCE_URL, accountId);
 		HttpEntity apiRequest = new HttpEntity(getHeaders());
 		ResponseEntity<BalanceOutputDto> apiResponse = restTemplate.exchange(apiUrl, HttpMethod.GET, apiRequest, BalanceOutputDto.class);
 		
@@ -46,9 +47,9 @@ public class BankServiceImpl implements BankService
 	private void validateGetBalanceInput(Long accountId) throws NullPointerException, IllegalArgumentException
 	{
 		if(accountId == null)
-			throw new NullPointerException("The accountId is null");
+			throw new NullPointerException(Constants.ACCOUNTID_NULL_ERROR);
 		else if(accountId <= 0)
-			throw new IllegalArgumentException("The accountId "+ accountId +" is not valid");
+			throw new IllegalArgumentException(String.format(Constants.ACCOUNTID_INVALID_ERROR, accountId));
 	}
 	
 	private BalanceOutputDto getBalanceOutputDtoGenericError(HttpStatus status, String code, String message)
@@ -72,8 +73,8 @@ public class BankServiceImpl implements BankService
 	{
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-		headers.add("Auth-Schema", "S2S");
-		headers.add("Api-Key", "FXOVVXXHVCPVPBZXIJOBGUGSKHDNFRRQJP");
+		headers.add("Auth-Schema", Constants.AUTH_SCHEMA);
+		headers.add("Api-Key", Constants.API_KEY);
 		
 		return headers;
 	}
@@ -91,7 +92,7 @@ public class BankServiceImpl implements BankService
 		
 		fillInputDto(inputDto);
 		
-		String apiUrl = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/"+ inputDto.getFeeAccountId() +"/payments/money-transfers/validate";
+		String apiUrl = String.format(Constants.PAY_CREDIT_TRANSFER_URL, inputDto.getFeeAccountId());
 		HttpEntity<CreditTransferInputDto> apiRequest = new HttpEntity<>(inputDto, getHeaders());
 		ResponseEntity<CreditTransferOutputDto> apiResponse = restTemplate.exchange(apiUrl, HttpMethod.POST, apiRequest, CreditTransferOutputDto.class);
 		
@@ -104,17 +105,17 @@ public class BankServiceImpl implements BankService
 	private void validatePayCreditTransferInput(CreditTransferInputDto inputDto) throws NullPointerException, IllegalArgumentException
 	{
 		if(inputDto.getFeeAccountId() == null || inputDto.getFeeAccountId().isEmpty())
-			throw new IllegalArgumentException("The accountId is null or empty");
+			throw new IllegalArgumentException(Constants.ACCOUNTID_NULL_EMPTY_ERROR);
 		else if(inputDto.getCreditor().getName() == null || inputDto.getCreditor().getName().isEmpty())
-			throw new IllegalArgumentException("The creditor name is null or empty");
+			throw new IllegalArgumentException(Constants.CREDITOR_NAME_NULL_EMPTY_ERROR);
 		else if(inputDto.getDescription() == null || inputDto.getDescription().isEmpty())
-			throw new IllegalArgumentException("The description is null or empty");
+			throw new IllegalArgumentException(Constants.DESCRIPTION_NULL_EMPTY_ERROR);
 		else if(inputDto.getCurrency() == null || inputDto.getCurrency().isEmpty())
-			throw new IllegalArgumentException("The currency is null or empty");
+			throw new IllegalArgumentException(Constants.CURRENCY_NULL_EMPTY_ERROR);
 		else if(inputDto.getAmount().doubleValue() <= 0)
-			throw new IllegalArgumentException("The amount "+ inputDto.getAmount().doubleValue() +" is not valid");
+			throw new IllegalArgumentException(String.format(Constants.AMOUNT_INVALID_ERROR, inputDto.getAmount().doubleValue()));
 		else if(inputDto.getExecutionDate() == null || inputDto.getExecutionDate().isEmpty())
-			throw new IllegalArgumentException("The execution date is null or empty");
+			throw new IllegalArgumentException(Constants.EXECUTION_DATE_NULL_EMPTY_ERROR);
 	}
 	
 	private CreditTransferOutputDto getCreditTransferOutputDtoGenericError(HttpStatus status, String code, String message)
@@ -175,8 +176,7 @@ public class BankServiceImpl implements BankService
 			return getTransactionsListOutputDtoGenericError(HttpStatus.BAD_REQUEST, "TRL001", e.getMessage());
 		}
 		
-		String apiUrl = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/"+ inputDto.getAccountId() +"/transactions?fromAccountingDate="+ inputDto.getFromAccountingDate() +
-							"&toAccountingDate="+ inputDto.getToAccountingDate();
+		String apiUrl = String.format(Constants.GET_TRANSACTIONS_URL, inputDto.getAccountId(), inputDto.getFromAccountingDate(), inputDto.getToAccountingDate());
 		HttpEntity apiRequest = new HttpEntity(getHeaders());
 		ResponseEntity<TransactionsListOutputDto> apiResponse = restTemplate.exchange(apiUrl, HttpMethod.GET, apiRequest, TransactionsListOutputDto.class);
 		
@@ -189,11 +189,11 @@ public class BankServiceImpl implements BankService
 	private void validateGetTransactionsListInput(TransactionsListInputDto inputDto) throws NullPointerException, IllegalArgumentException
 	{
 		if(inputDto.getAccountId() <= 0)
-			throw new IllegalArgumentException("The accountId "+ inputDto.getAccountId() +" is not valid");
+			throw new IllegalArgumentException(String.format(Constants.ACCOUNTID_INVALID_ERROR, inputDto.getAccountId()));
 		else if (inputDto.getFromAccountingDate() == null || inputDto.getFromAccountingDate().length() != 10)
-			throw new IllegalArgumentException("The argument fromAccountingDate "+ inputDto.getFromAccountingDate() +" is malformed or null");
+			throw new IllegalArgumentException(String.format(Constants.FROM_DATE_NULL_MALFORMED_ERROR, inputDto.getFromAccountingDate()));
 		else if (inputDto.getToAccountingDate() == null || inputDto.getToAccountingDate().length() != 10)
-			throw new IllegalArgumentException("The argument toAccountingDate "+ inputDto.getToAccountingDate() +" is malformed or null");
+			throw new IllegalArgumentException(String.format(Constants.TO_DATE_NULL_MALFORMED_ERROR, inputDto.getToAccountingDate()));
 	}
 	
 	private TransactionsListOutputDto getTransactionsListOutputDtoGenericError(HttpStatus status, String code, String message)
