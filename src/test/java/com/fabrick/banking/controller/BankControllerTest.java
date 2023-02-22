@@ -3,9 +3,7 @@ package com.fabrick.banking.controller;
 import com.fabrick.banking.dto.*;
 import com.fabrick.banking.factory.ConverterFactory;
 import com.fabrick.banking.interfaces.*;
-import com.fabrick.banking.model.PaymentTransaction;
-import com.fabrick.banking.model.TransactionType;
-import com.fabrick.banking.model.TransactionsListPayload;
+import com.fabrick.banking.model.*;
 import com.fabrick.banking.service.BankService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,14 +110,59 @@ public class BankControllerTest extends AbstractTest
 	private CreditTransferRequest initCreditTransferRequest()
 	{
 		CreditTransferRequest request = new CreditTransferRequest();
-		request.setReceiverName("John Doe");
-		request.setDescription("Payment invoice 75-2017");
-		request.setCurrency("EUR");
-		request.setAmount(new BigDecimal(800));
+		request.setCreditor(getCreditor());
 		request.setExecutionDate("2019-04-01");
-		request.setAccountId(14537780L);
+		request.setUri("REMITTANCE_INFORMATION");
+		request.setDescription("Payment invoice 75/2017");
+		request.setAmount(new BigDecimal(800));
+		request.setCurrency("EUR");
+		request.setIsUrgent(false);
+		request.setIsInstant(false);
+		request.setFeeType("SHA");
+		request.setFeeAccountId("14537780");
+		request.setTaxRelief(getTaxRelief());
 		
 		return request;
+	}
+	
+	private Creditor getCreditor()
+	{
+		Creditor creditor = new Creditor();
+		creditor.setName("John Doe");
+		creditor.setAccount(getAccount());
+		creditor.setAddress(new Address());
+		
+		return creditor;
+	}
+	
+	private Account getAccount()
+	{
+		Account account = new Account();
+		account.setAccountCode("IT23A0336844430152923804660");
+		account.setBicCode("SELBIT2BXXX");
+		
+		return account;
+	}
+	
+	private TaxRelief getTaxRelief()
+	{
+		TaxRelief taxRelief = new TaxRelief();
+		taxRelief.setTaxReliefId("L449");
+		taxRelief.setIsCondoUpgrade(false);
+		taxRelief.setCreditorFiscalCode("56258745832");
+		taxRelief.setBeneficiaryType("NATURAL_PERSON");
+		taxRelief.setNaturalPersonBeneficiary(getNaturalPersonBeneficiary());
+		taxRelief.setLegalPersonBeneficiary(new LegalPersonBeneficiary());
+		
+		return taxRelief;
+	}
+	
+	private NaturalPersonBeneficiary getNaturalPersonBeneficiary()
+	{
+		NaturalPersonBeneficiary naturalPerson = new NaturalPersonBeneficiary();
+		naturalPerson.setFiscalCode1("MRLFNC81L04A859L");
+		
+		return naturalPerson;
 	}
 	
 	@Test

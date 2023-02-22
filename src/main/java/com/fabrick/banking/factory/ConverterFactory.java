@@ -4,6 +4,7 @@ import com.fabrick.banking.dto.*;
 import com.fabrick.banking.interfaces.*;
 import com.fabrick.banking.model.BalancePayload;
 import com.fabrick.banking.model.CreditTransferPayload;
+import org.dozer.DozerBeanMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -41,19 +42,9 @@ public class ConverterFactory
 	
 	public CreditTransferInputDto toCreditTransferInputDto(CreditTransferRequest request)
 	{
-		CreditTransferInputDto inputDto = new CreditTransferInputDto();
+		DozerBeanMapper mapper = new DozerBeanMapper();
 		
-		CreditorDto creditor = new CreditorDto();
-		creditor.setName(request.getReceiverName());
-		inputDto.setCreditor(creditor);
-		
-		inputDto.setDescription(request.getDescription());
-		inputDto.setCurrency(request.getCurrency());
-		inputDto.setAmount(request.getAmount());
-		inputDto.setExecutionDate(request.getExecutionDate());
-		inputDto.setFeeAccountId(String.valueOf(request.getAccountId()));
-		
-		return inputDto;
+		return mapper.map(request, CreditTransferInputDto.class);
 	}
 	
 	public CreditTransferResponse toCreditTransferResponse(CreditTransferOutputDto outputDto)
