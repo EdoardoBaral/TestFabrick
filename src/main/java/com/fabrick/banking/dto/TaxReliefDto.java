@@ -1,5 +1,6 @@
 package com.fabrick.banking.dto;
 
+import com.fabrick.banking.model.BeneficiaryType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.ToString;
@@ -16,7 +17,7 @@ public class TaxReliefDto implements Serializable
 	private String taxReliefId;
 	private Boolean isCondoUpgrade;
 	private String creditorFiscalCode;
-	private String beneficiaryType;
+	private BeneficiaryType beneficiaryType;
 	private NaturalPersonBeneficiaryDto naturalPersonBeneficiary;
 	private LegalPersonBeneficiaryDto legalPersonBeneficiary;
 }
