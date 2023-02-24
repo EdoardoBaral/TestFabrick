@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class GenericResponse implements Serializable
+public class GenericResponse implements Serializable
 {
 	private static final long serialVersionUID = -8447842011638282804L;
 	
