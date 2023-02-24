@@ -5,6 +5,7 @@ import com.fabrick.banking.factory.ConverterFactory;
 import com.fabrick.banking.interfaces.*;
 import com.fabrick.banking.model.*;
 import com.fabrick.banking.service.BankService;
+import com.fabrick.banking.utils.Constants;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,8 +19,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
@@ -72,6 +72,23 @@ public class BankControllerTest extends AbstractTest
 		example.setCurrency("EUR");
 		
 		return example;
+	}
+	
+	@Test
+	public void getBalanceKOAccountIdTest() throws Exception
+	{
+		String uri = "/api/balance/0";
+		MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders
+											  .get(uri)
+											  .accept(MediaType.APPLICATION_JSON_VALUE))
+								  .andReturn();
+		
+		int status = mvcResult.getResponse().getStatus();
+		assertEquals(400, status);
+		
+		String content = mvcResult.getResponse().getContentAsString();
+		BalanceResponse response = super.mapFromJson(content, BalanceResponse.class);
+		assertNotNull(response);
 	}
 	
 	@Test
@@ -150,7 +167,7 @@ public class BankControllerTest extends AbstractTest
 		taxRelief.setTaxReliefId("L449");
 		taxRelief.setIsCondoUpgrade(false);
 		taxRelief.setCreditorFiscalCode("56258745832");
-		taxRelief.setBeneficiaryType("NATURAL_PERSON");
+		taxRelief.setBeneficiaryType(BeneficiaryType.NATURAL_PERSON);
 		taxRelief.setNaturalPersonBeneficiary(getNaturalPersonBeneficiary());
 		taxRelief.setLegalPersonBeneficiary(new LegalPersonBeneficiary());
 		
@@ -163,6 +180,62 @@ public class BankControllerTest extends AbstractTest
 		naturalPerson.setFiscalCode1("MRLFNC81L04A859L");
 		
 		return naturalPerson;
+	}
+	
+	@Test
+	public void payCreditTransferKOCreditorNameEmptyTest() throws Exception
+	{
+		String uri = "/api/creditTransfer";
+		
+		CreditTransferRequest request = initCreditTransferRequest();
+		request.getCreditor().setName("");
+		
+		String inputJson = mapToJson(request);
+		
+		MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders
+											  .post(uri)
+											  .contentType(MediaType.APPLICATION_JSON_VALUE)
+											  .content(inputJson))
+								  .andReturn();
+		
+		int status = mvcResult.getResponse().getStatus();
+		assertEquals(400, status);
+		
+		String content = mvcResult.getResponse().getContentAsString();
+		CreditTransferResponse response = super.mapFromJson(content, CreditTransferResponse.class);
+		
+		assertNotNull(response);
+		assertEquals(GenericResponse.STATUS_KO, response.getStatus());
+		assertFalse(response.getError().isEmpty());
+		assertEquals(Constants.CREDITOR_NAME_EMPTY_ERROR, response.getError().get(0).getDescription());
+	}
+	
+	@Test
+	public void payCreditTransferKOAccountIdBlankTest() throws Exception
+	{
+		String uri = "/api/creditTransfer";
+		
+		CreditTransferRequest request = initCreditTransferRequest();
+		request.setFeeAccountId(" ");
+		
+		String inputJson = mapToJson(request);
+		
+		MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders
+											  .post(uri)
+											  .contentType(MediaType.APPLICATION_JSON_VALUE)
+											  .content(inputJson))
+								  .andReturn();
+		
+		int status = mvcResult.getResponse().getStatus();
+		assertEquals(400, status);
+		
+		String content = mvcResult.getResponse().getContentAsString();
+		CreditTransferResponse response = super.mapFromJson(content, CreditTransferResponse.class);
+		
+		assertNotNull(response);
+		assertEquals(GenericResponse.STATUS_KO, response.getStatus());
+		assertFalse(response.getError().isEmpty());
+		assertEquals(Constants.FEE_ACCOUNT_ID_BLANK_ERROR, response.getError().get(0).getDescription());
 	}
 	
 	@Test
@@ -220,5 +293,77 @@ public class BankControllerTest extends AbstractTest
 		payload.setList(list);
 		
 		return payload;
+	}
+	
+	@Test
+	public void getTransactionListKOAccountIdInvalidTest() throws Exception
+	{
+		String uri = "/api/transactionsList/0/2019-01-01/2019-12-31";
+		TransactionsListOutputDto outputDtoMocked = getTransactionsListOutputDtoMocked();
+		when(service.getTransactionsList(any())).thenReturn(outputDtoMocked);
+		
+		MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders
+											  .get(uri)
+											  .accept(MediaType.APPLICATION_JSON_VALUE))
+								  .andReturn();
+		
+		int status = mvcResult.getResponse().getStatus();
+		assertEquals(400, status);
+		
+		String content = mvcResult.getResponse().getContentAsString();
+		TransactionsListResponse response = super.mapFromJson(content, TransactionsListResponse.class);
+		
+		assertNotNull(response);
+		assertEquals(GenericResponse.STATUS_KO, response.getStatus());
+		assertFalse(response.getError().isEmpty());
+		assertEquals(Constants.ACCOUNTID_MINVALUE_ERROR, response.getError().get(0).getDescription());
+	}
+	
+	@Test
+	public void getTransactionListKOFromAccountingDateSizeTest() throws Exception
+	{
+		String uri = "/api/transactionsList/0/2019-01-0/2019-12-31";
+		TransactionsListOutputDto outputDtoMocked = getTransactionsListOutputDtoMocked();
+		when(service.getTransactionsList(any())).thenReturn(outputDtoMocked);
+		
+		MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders
+											  .get(uri)
+											  .accept(MediaType.APPLICATION_JSON_VALUE))
+								  .andReturn();
+		
+		int status = mvcResult.getResponse().getStatus();
+		assertEquals(400, status);
+		
+		String content = mvcResult.getResponse().getContentAsString();
+		TransactionsListResponse response = super.mapFromJson(content, TransactionsListResponse.class);
+		
+		assertNotNull(response);
+		assertEquals(GenericResponse.STATUS_KO, response.getStatus());
+		assertFalse(response.getError().isEmpty());
+		assertEquals(Constants.FROM_ACCOUNTNG_DATE_SIZE_ERROR, response.getError().get(0).getDescription());
+	}
+	
+	@Test
+	public void getTransactionListKOToAccountingDateSizeTest() throws Exception
+	{
+		String uri = "/api/transactionsList/0/2019-01-01/2019-12-312";
+		TransactionsListOutputDto outputDtoMocked = getTransactionsListOutputDtoMocked();
+		when(service.getTransactionsList(any())).thenReturn(outputDtoMocked);
+		
+		MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders
+											  .get(uri)
+											  .accept(MediaType.APPLICATION_JSON_VALUE))
+								  .andReturn();
+		
+		int status = mvcResult.getResponse().getStatus();
+		assertEquals(400, status);
+		
+		String content = mvcResult.getResponse().getContentAsString();
+		TransactionsListResponse response = super.mapFromJson(content, TransactionsListResponse.class);
+		
+		assertNotNull(response);
+		assertEquals(GenericResponse.STATUS_KO, response.getStatus());
+		assertFalse(response.getError().isEmpty());
+		assertEquals(Constants.TO_ACCOUNTNG_DATE_SIZE_ERROR, response.getError().get(0).getDescription());
 	}
 }
